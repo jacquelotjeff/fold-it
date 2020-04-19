@@ -26,6 +26,18 @@ php app.php fold:rename-by-date input-directory output-directory
 You can precise the timezone with option -t "Europe/Berlin".
 
 
+*Example of use:*
+
+- A folder named `photos` in the project directory contains:
+
+<img src="docs/rename-by-date-example-input.png" alt="input folder" width="250"/>
+
+- Execute the program: `php app.php fold:rename-by-date photos reclassified-photos`
+
+- A new folder will be created:
+
+<img src="docs/rename-by-date-example-output.png" alt="output folder" width="250"/>
+
 **TODO:**
 
 - Add unit tests
