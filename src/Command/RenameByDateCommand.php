@@ -11,7 +11,7 @@ use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 
-class RenameByDateCommand extends Command
+final class RenameByDateCommand extends Command
 {
     protected static $defaultName = 'fold:rename-by-date';
 
@@ -24,7 +24,7 @@ class RenameByDateCommand extends Command
     /** @var string */
     private $outputDir;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setDescription('Rename your files from their date of creation in order to have your folders more organized.')
@@ -34,7 +34,7 @@ class RenameByDateCommand extends Command
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->inputDir = $input->getArgument('input_dir');
         $this->outputDir = $input->getArgument('output_dir');
@@ -53,7 +53,7 @@ class RenameByDateCommand extends Command
         }
 
         if (!$this->fileSystem->exists($this->inputDir)) {
-            $output->writeln('The input dir doesn\t exist.');
+            $output->writeln('The input dir doesn\'t exist.');
 
             return 126;
         }
@@ -76,18 +76,15 @@ class RenameByDateCommand extends Command
         $finder = new Finder();
         $finder->in($this->inputDir);
 
-        $this->process($this->inputDir);
+        $this->process($finder);
 
-        $output->writeln(sprintf('%d photos were processed ;)', $this->countProcessedFiles));
+        $output->writeln(sprintf('%d files were processed ;)', $this->countProcessedFiles));
 
         return 0;
     }
 
-    private function process(): void
+    private function process(Finder $finder): void
     {
-        $finder = new Finder();
-        $finder->in($this->inputDir);
-
         foreach ($finder as $file) {
             if ($file->isFile()) {
                 $this->processFile($file);
@@ -98,11 +95,13 @@ class RenameByDateCommand extends Command
     private function processFile(\SplFileInfo $file): void
     {
         $this->countProcessedFiles++;
+        $fileDate = filemtime($file->getRealPath());
 
-        $date = date('Y-m-d H\hi', filemtime($file->getRealPath()));
+        $date = date('Y-m-d H\hi', $fileDate);
+        $year = date('Y', $fileDate);
 
         $extension = $file->getExtension();
-        $commonFileName = $this->outputDir.'/'.$date;
+        $commonFileName = $this->outputDir.'/'.$year.'/'.$date;
 
         $outputFile = $commonFileName.'.'.$extension;
 
@@ -113,5 +112,8 @@ class RenameByDateCommand extends Command
         }
 
         $this->fileSystem->copy($file->getRealPath(), $outputFile);
+
+        // Keep original creation date.
+        touch($outputFile, $fileDate);
     }
 }
